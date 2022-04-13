@@ -1,4 +1,5 @@
 import collections
+import collections.abc
 
 
 class Node:
@@ -27,7 +28,7 @@ class BSTree:
         self.Root = None
 
         if len(args) == 1:
-            if isinstance(args[0],collections.Iterable):
+            if isinstance(args[0],collections.abc.Iterable):
                 for x in args[0]:
                     self.insert(x[0],x[1])
             else:
@@ -527,7 +528,7 @@ class SplayTree(BSTree):
         a new Node with key attribute key and value attribute
         value into T and _rotates it to the root of T.
         """
-        if not isinstance(key,(int,long,float)):
+        if not isinstance(key,(int,int,float)):
             raise TypeError(str(key) + " is not a number")
         else:
             if not self.Root:
@@ -799,3 +800,6 @@ class SplayTree(BSTree):
                 self.delete(x)
         else:
             raise TypeError(str(iter) + " is not iterable")
+
+
+
