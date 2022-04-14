@@ -175,6 +175,7 @@ def plot_tree(tree):
     plt.axis('off')
     plt.show()
 
+
 import collections
 import collections.abc
 
@@ -587,13 +588,6 @@ class BSTree:
             raise TypeError(str(iter) + " is not iterable")
 
 
-class SplayNode(Node):
-    """Represents a node of a Splay Tree"""
-    def __init__(self,key,value):
-        """Initializes a BST Node to represent a Splay Node"""
-        Node.__init__(self,key,value)
-
-
 class AVLNode(Node):
     """Represents a node of a balanced AVL Tree"""
     def __init__(self,key,value):
@@ -601,6 +595,7 @@ class AVLNode(Node):
         Node.__init__(self,key,value)
         self.height = 0
         self.balance = 0
+
 
 class AVLTree(BSTree):
     """
@@ -1048,26 +1043,25 @@ class AVLTree(BSTree):
             raise TypeError(str(iter) + " is not iterable")
 
 
-T = AVLTree()
-s = 0
-for i in range(int(input())):
-    a, b, *c = input().split()
-    b = (int(b) + s) % 1000000001
-    if a == "+" and T.get_node(b):
-        T.insert(b, 0)
-    if a == '-':
-        T.delete(b)
-    if a == '?':
-        print('Found') if T.get_node(b) else print('Not found')
-    if a == 's':
-        s = 0
-        c = (int(c) + s) % 1000000001
-        for j in range(b, c + 1):
-            if T.get_node(j):
-                s += T.get_node(j)
-        print(s)
-
-
-
-
-
+with open('test.txt') as f:
+    T = AVLTree()
+    s = 0
+    for i in range(int(f.readline())):
+        a, b, *c = f.readline().split()
+        b = (int(b) + s) % 1000000001
+        if a == "+" and not T.get_node(b):
+            T.insert(b, 0)
+        if a == '-':
+            T.delete(b)
+        if a == '?':
+            print('Found') if T.get_node(b) else print('Not found')
+        if a == 's':
+            s_new = 0
+            c = (int(c[0]) + s) % 1000000001
+            A = T.preorder()
+            for elem in A:
+                if elem.key in range(b, c + 1):
+                    s_new += elem.key
+            if s_new != 0:
+                s = s_new
+            print(s)
