@@ -1,3 +1,180 @@
+import matplotlib.pyplot as plt
+import networkx as nx
+
+
+def _get_pos_list(tree):
+    """
+    _get_pos_list(tree) -> Mapping. Produces a mapping
+    of nodes as keys, and their coordinates for plotting
+    as values. Since pyplot or networkx don't have built in
+    methods for plotting binary search trees, this somewhat
+    choppy method has to be used.
+    """
+    return _get_pos_list_from(tree,tree.Root,{},0,(0,0),1.0)
+
+def _get_pos_list_from(tree,node,poslst,index,coords,gap):
+    """
+    _get_pos_list_from(tree,node,poslst,index,coords,gap) -> Mapping.
+    Produces a mapping of nodes as keys, and their coordinates for
+    plotting as values.
+    Non-straightforward arguments:
+    index: represents the index of node in
+    a list of all Nodes in tree in preorder.
+    coords: represents coordinates of node's parent. Used to
+    determine coordinates of node for plotting.
+    gap: represents horizontal distance from node and node's parent.
+    To achieve plotting consistency each time we move down the tree
+    we half this value.
+    """
+    positions = poslst
+
+    if node and node.key == tree.Root.key:
+        positions[0] = (0,0)
+        positions = _get_pos_list_from(tree,tree.Root.left,positions,1,(0,0),gap)
+        positions = _get_pos_list_from(tree,tree.Root.right,positions,1+tree.get_element_count(node.left),(0,0),gap)
+        return positions
+    elif node:
+        if node.parent.right and node.parent.right.key == node.key:
+            new_coords = (coords[0]+gap,coords[1]-1)
+            positions[index] = new_coords
+        else:
+            new_coords = (coords[0]-gap,coords[1]-1)
+            positions[index] = new_coords
+
+        positions = _get_pos_list_from(tree,node.left,positions,index+1,new_coords,gap/2)
+        positions = _get_pos_list_from(tree,node.right,positions,1+ index + tree.get_element_count(node.left), new_coords,gap/2)
+        return positions
+    else:
+        return positions
+
+def _get_edge_list(tree):
+    """
+    _get_edge_list(tree) -> Sequence. Produces a sequence
+    of tuples representing edges to be drawn.
+    """
+    return _get_edge_list_from(tree,tree.Root,[],0)
+
+def _get_edge_list_from(tree,node,edgelst,index):
+    """
+    _get_edge_list_from(tree,node,edgelst,index) -> Sequence.
+    Produces a sequence of tuples representing edges to be drawn.
+    As stated before, index represents the index of node in
+    a list of all Nodes in tree in preorder.
+    """
+    edges = edgelst
+
+    if node and node.key == tree.Root.key:
+        new_index = 1 + tree.get_element_count(node.left)
+
+        if node.left:
+            edges.append((0,1))
+            edges = _get_edge_list_from(tree,node.left,edges,1)
+        if node.right:
+            edges.append((0,new_index))
+            edges = _get_edge_list_from(tree,node.right,edges,new_index)
+
+        return edges
+
+    elif node:
+        new_index = 1 + index + tree.get_element_count(node.left)
+
+        if node.left:
+            edges.append((index,index+1))
+        if node.right:
+            edges.append((index,new_index))
+
+        edges = _get_edge_list_from(tree,node.left,edges,index+1)
+        edges = _get_edge_list_from(tree,node.right,edges,new_index)
+        return edges
+
+    else:
+        return edges
+
+def _preorder(tree,*args):
+    """
+    _preorder(tree,...) -> Sequence. Produces a sequence of the Nodes
+    in tree, obtained in preorder. Used to get information
+    for plotting.
+    """
+    if len(args) == 0:
+        elements = []
+        node = tree.Root
+    else:
+        node = tree
+        elements = args[0]
+
+    elements.append(node)
+
+    if node.left:
+        _preorder(node.left,elements)
+    if node.right:
+        _preorder(node.right,elements)
+
+    return elements
+
+def _get_label_list(tree):
+    """
+    _get_pos_list(tree) -> Mapping. Produces a mapping
+    of nodes as keys, and their labels for plotting
+    as values.
+    """
+    nodelist = _preorder(tree)
+    labellist = {}
+    index = 0
+    for node in nodelist:
+        labellist[index] = node.key
+        index = index + 1
+
+    return labellist
+
+def _get_color_list(tree):
+    """
+    _get_color_list(tree) -> Sequence. Produces
+    a sequence of colors in tree for plotting.
+    NOTE: Assumes tree is a Red Black Tree.
+    This is checked first in the main function draw().
+    """
+    nodelist = _preorder(tree)
+    colorlist = []
+    for node in nodelist:
+        if node.color:
+            colorlist.append(node.color)
+
+    return colorlist
+
+def plot_tree(tree):
+    """
+    plot_tree(tree). Utilizes networkx and the methods above
+    to create a graph to represent a binary search tree, and
+    then utilizes pyplot to draw the tree to the screen.
+    """
+    G=nx.Graph()
+
+    pos = _get_pos_list(tree)
+    nodes = [x for x in pos.keys()]
+    edges = _get_edge_list(tree)
+    labels = _get_label_list(tree)
+    colors = []
+    try:
+        colors = _get_color_list(tree)
+    except AttributeError:
+        pass
+
+    G.add_edges_from(edges)
+    G.add_nodes_from(nodes)
+
+    if len(colors) > 0:
+        nx.draw_networkx_nodes(G,pos,node_size=400,node_color=colors)
+        nx.draw_networkx_edges(G,pos)
+        nx.draw_networkx_labels(G,pos,labels,font_color='w')
+    else:
+        nx.draw_networkx_nodes(G,pos,node_size=400,node_color='r')
+        nx.draw_networkx_edges(G,pos)
+        nx.draw_networkx_labels(G,pos,labels)
+
+    plt.axis('off')
+    plt.show()
+
 import collections
 import collections.abc
 
@@ -416,29 +593,36 @@ class SplayNode(Node):
         """Initializes a BST Node to represent a Splay Node"""
         Node.__init__(self,key,value)
 
-class SplayTree(BSTree):
+
+class AVLNode(Node):
+    """Represents a node of a balanced AVL Tree"""
+    def __init__(self,key,value):
+        """Initializes a BST node, then add height and balance attributes"""
+        Node.__init__(self,key,value)
+        self.height = 0
+        self.balance = 0
+
+class AVLTree(BSTree):
     """
-    SplayTree implements a self-adjusting AVL Tree.
-    A Splay Tree is an ordered node based tree key structure
-    in which each node has at most two children, and everytime a
-    node is accessed via search, insertion, or deletion, it is splayed
-    to the root of the tree.
-    For more information regarding Splay Trees, see:
-    http://en.wikipedia.org/wiki/Splay_Tree
+    AVLTree implements a self-balancing AVL Tree.
+    An AVL Tree is an ordered node based tree key structure
+    in which each node has at most two children, and the heights
+    of each children of a node differ by at most one.
+    For more information regarding AVL Trees, see:
+    http://en.wikipedia.org/wiki/Avl_tree
     Constructors:
-    SplayTree() -> Creates a new empty Splay Tree
-    SplayTree(seq) -> Creates a new Splay Tree from the elements in sequence [(k1,v1),(k2,v2),...,(kn,vn)]
+    AVLTree() -> Creates a new empty AVL Tree
+    AVLTree(seq) -> Creates a new AVL Tree from the elements in sequence [(k1,v1),(k2,v2),...,(kn,vn)]
     For further explanation of some functions or their source code, see bstree.py.
     """
     def __init__(self,*args):
-        """Initialzes tree the same as as BST"""
+        """Initializes tree the same as a BST"""
         BSTree.__init__(self,*args)
 
     def is_valid(self, *args):
         """
         T.is_valid(...) -> Boolean. Produces True if and only if
-        T is a valid Splay Tree. Note a valid Splay Tree has the exact same properties
-        as a valid BST. Raises an exception otherwise.
+        T is a valid AVL Tree. Raises an exception otherwise.
         """
         if len(args) == 0:
             node = self.Root
@@ -447,6 +631,18 @@ class SplayTree(BSTree):
 
         if not node:
             return True
+
+        expected_height = self.get_height(node)
+        expected_balance = self.get_balance(node)
+
+        if not (node.height == expected_height):
+            raise Exception("Height of node " + str(node.key) + " is " + str(node.height) + " and should be " + str(expected_height))
+
+        if not (node.balance == expected_balance):
+            raise Exception("Balance of node " + str(node.key) + " is " + str(node.balance) + " and should be " + str(expected_balance))
+
+        if abs(expected_balance) > 1:
+            raise Exception("Tree is unbalanced at node " + str(node.key))
 
         if node.left:
             if not node.left.parent == node:
@@ -494,63 +690,56 @@ class SplayTree(BSTree):
         """
         return BSTree.levelorder(self,*args)
 
-    def _get_node_without_splaying(self,key,*args):
-        """
-        T.get_node(key,...) -> Node. Produces the Node in T with key
-        attribute key without rotating it to the root of T.
-        If there is no such Node, produces None.
-        """
-        return BSTree.get_node(self,key,*args)
-
     def get_node(self,key,*args):
         """
         T.get_node(key,...) -> Node. Produces the Node in T with key
-        attribute key and _rotates it to the root of T.
-        If there is no such Node, produces None.
+        attribute key. If there is no such Node, produces None.
         """
-        if len(args) == 0:
-            start = self.Root
-        else:
-            start = args[0]
-        if not start:
-            return None
-        if key == start.key:
-            self._rotate_to_root(start)
-            return start
-        elif key > start.key:
-            return self.get_node(key,start.right)
-        else:
-            return self.get_node(key,start.left)
+        return BSTree.get_node(self,key,*args)
 
     def insert(self,key,value,*args):
         """
         T.insert(key,value...) <==> T[key] = value. Inserts
         a new Node with key attribute key and value attribute
-        value into T and _rotates it to the root of T.
+        value into T. Balances if necessary.
         """
         if not isinstance(key,(int,int,float)):
             raise TypeError(str(key) + " is not a number")
         else:
             if not self.Root:
-                self.Root = Node(key,value)
+                self.Root = AVLNode(key,value)
             elif len(args) == 0:
-                if not self._get_node_without_splaying(key, self.Root):
+                if not self.get_node(key,self.Root):
                     self.insert(key,value,self.Root)
             else:
-                child = Node(key,value)
+                child = AVLNode(key,value)
                 parent = args[0]
                 if child.key > parent.key:
                     if not parent.right:
                         parent.right = child
                         child.parent = parent
-                        self._rotate_to_root(child)
+                        self._update_height(parent)
+                        self._update_balance(parent)
+                        node = child
+                        while node and abs(node.balance) <=1:
+                            node = node.parent
+                        if node:
+                            self._balance(node)
                     else:
                         self.insert(key,value,parent.right)
                 else:
                     if not parent.left:
                         parent.left = child
                         child.parent = parent
-                        self._rotate_to_root(child)
+                        self._update_height(parent)
+                        self._update_balance(parent)
+                        node = child
+                        while abs(node.balance) <=1:
+                            node = node.parent
+                            if not node:
+                                break
+                        if node:
+                            self._balance(node)
                     else:
                         self.insert(key,value,parent.left)
 
@@ -590,9 +779,53 @@ class SplayTree(BSTree):
         """
         return BSTree.get_height(self,*args)
 
+    def get_balance(self,*args):
+        """
+        T.get_balance(...) -> Nat. Produces the balance of T, defined
+        as the height of the right subtree taken away from the height
+        of the left subtree.
+        """
+        if len(args) == 0:
+            node = self.Root
+        else:
+            node = args[0]
+
+        return ((node.left.height if node.left else -1) -
+                (node.right.height if node.right else -1))
+
+    def _update_height(self,node):
+        """
+        T._update_height(node). Updates the height attribute
+        of Nodes in T starting from node backtracking up to the root.
+        """
+        if not node:
+            pass
+        else:
+            new_height = self.get_height(node)
+            if node.height == new_height:
+                pass
+            else:
+                node.height = new_height
+                self._update_height(node.parent)
+
+    def _update_balance(self,node):
+        """
+        T._update_balance(node). Updates the balance attribute
+        of Nodes in T starting from node backtracking up to the root.
+        """
+        if not node:
+            pass
+        else:
+            new_balance = self.get_balance(node)
+            if node.balance == new_balance:
+                pass
+            else:
+                node.balance = new_balance
+                self._update_balance(node.parent)
+
     def _rotate_left(self,pivot):
         """
-        T.__rotate_left(pivot). Performs a left tree rotation in T
+        T._rotate_left(pivot). Performs a left tree rotation in T
         around the Node pivot.
         """
         old_root = pivot
@@ -618,9 +851,14 @@ class SplayTree(BSTree):
                 par_node.left = new_root
                 new_root.parent = par_node
 
+        self._update_height(new_root.left)
+        self._update_height(par_node)
+        self._update_balance(new_root.left)
+        self._update_balance(par_node)
+
     def _rotate_right(self,pivot):
         """
-        T.__rotate_right(pivot). Performs a right tree rotation in T
+        T._rotate_right(pivot). Performs a right tree rotation in T
         around the Node pivot.
         """
         old_root = pivot
@@ -647,43 +885,37 @@ class SplayTree(BSTree):
                 par_node.left = new_root
                 new_root.parent = par_node
 
-    def _rotate_to_root(self,node):
+        self._update_height(new_root.right)
+        self._update_height(par_node)
+        self._update_balance(new_root.right)
+        self._update_balance(par_node)
+
+    def _balance(self,pivot):
         """
-        T._rotate_to_root(node). Uses appropriate tree rotations
-        to _rotate (splay) node to the root of T.
+        T._balance(pivot). Balances T at Node pivot, performing
+        appropriate tree rotations to ensure T remains a valid AVL Tree.
         """
-        parent = node.parent
+        weight = self.get_balance(pivot)
 
-        if parent:
+        if weight == -2:
+            if self.get_balance(pivot.right) == -1 or self.get_balance(pivot.right) == 0:
+                self._rotate_left(pivot)
 
-            grandparent = parent.parent
-            if not grandparent:
-                if parent.left == node:
-                    self._rotate_right(parent)
-                else:
-                    self._rotate_left(parent)
+            elif self.get_balance(pivot.right) == 1:
+                self._rotate_right(pivot.right)
+                self._rotate_left(pivot)
 
-            elif grandparent.left == parent and parent.left == node:
-                self._rotate_right(grandparent)
-                self._rotate_right(parent)
+        elif weight == 2:
+            if self.get_balance(pivot.left) == 1 or self.get_balance(pivot.left) == 0:
+                self._rotate_right(pivot)
 
-            elif grandparent.right == parent and parent.right == node:
-                self._rotate_left(grandparent)
-                self._rotate_left(parent)
-
-            elif grandparent.left == parent and parent.right == node:
-                self._rotate_left(parent)
-                self._rotate_right(grandparent)
-
-            elif grandparent.right == parent and parent.left == node:
-                self._rotate_right(parent)
-                self._rotate_left(grandparent)
-
-            self._rotate_to_root(node)
+            elif self.get_balance(pivot.left) == -1:
+                self._rotate_left(pivot.left)
+                self._rotate_right(pivot)
 
     def _delete_leaf(self,node):
         """
-        T.__delete_leaf_parent(node). Deletes node from T, treating it
+        T._delete_leaf_parent(node). Deletes node from T, treating it
         as a Node with only one child.
         """
         par_node = node.parent
@@ -696,12 +928,21 @@ class SplayTree(BSTree):
 
             del node
 
+            self._update_height(par_node)
+            self._update_balance(par_node)
+            to_balance = par_node
+
+            while to_balance and abs(to_balance.balance) <=1:
+                to_balance = to_balance.parent
+            if to_balance:
+                self._balance(to_balance)
+
         else:
             self.Root = None
 
     def _delete_leaf_parent(self,node):
         """
-        T.__delete_leaf_parent(node). Deletes node from T, treating it
+        T._delete_leaf_parent(node). Deletes node from T, treating it
         as a Node with only one child.
         """
         par_node = node.parent
@@ -737,16 +978,25 @@ class SplayTree(BSTree):
 
         del node
 
+        self._update_height(par_node)
+        self._update_balance(par_node)
+        to_balance = par_node
+
+        while to_balance and abs(to_balance.balance) <=1:
+            to_balance = to_balance.parent
+        if to_balance:
+            self._balance(to_balance)
+
     def _switch_nodes(self,node1,node2):
         """
-        T.__switch_nodes(node1,node2). Switches positions
+        T._switch_nodes(node1,node2). Switches positions
         of node1 and node2 in T.
         """
         BSTree._switch_nodes(self,node1,node2)
 
     def _delete_node(self,node):
         """
-        T.__delete_node(node). Deletes node from T, treating it as
+        T._delete_node(node). Deletes node from T, treating it as
         a Node with two children.
         """
         if self.get_height(node.left) > self.get_height(node.right):
@@ -774,8 +1024,7 @@ class SplayTree(BSTree):
         """T.delete(key) <==> del T[key]. Deletes the Node
         with key attribute key from T.
         """
-        node = self._get_node_without_splaying(key,self.Root)
-        parent = node.parent
+        node = self.get_node(key,self.Root)
 
         if node:
             if not (node.left or node.right):
@@ -786,9 +1035,6 @@ class SplayTree(BSTree):
 
             else:
                 self._delete_node(node)
-
-            if parent:
-                self._rotate_to_root(parent)
 
     def delete_from(self,seq):
         """
@@ -801,5 +1047,8 @@ class SplayTree(BSTree):
         else:
             raise TypeError(str(iter) + " is not iterable")
 
-
+A = AVLTree([(5, 5), (2, 2), (4, 4), (3, 3), (7, 7), (9, 9)])
+A.get_node(2)
+A.insert(11,11)
+plot_tree(A)
 
