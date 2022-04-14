@@ -690,24 +690,24 @@ class AVLTree(BSTree):
             raise TypeError(str(iter) + " is not iterable")
 
 
-with open('test.txt') as f:
-    T = AVLTree()
-    s = 0
-    for i in range(int(f.readline())):
-        a, b, *c = f.readline().split()
-        b = (int(b) + s) % 1000000001
-        if a == "+" and not T.get_node(b):
-            T.insert(b, 0)
-        if a == '-':
-            T.delete(b)
-        if a == '?':
-            print('Found') if T.get_node(b) else print('Not found')
-        if a == 's':
-            s_new = 0
-            c = (int(c[0]) + s) % 1000000001
-            for elem in T.inorder():
-                if elem.key in range(b, c + 1):
-                    s_new += elem.key
-            if s_new != 0:
-                s = s_new
-            print(s)
+T = AVLTree()
+s = 0
+for i in range(int(input())):
+    a, b, *c = input().split()
+    b = (int(b) + s) % 1000000001
+    if a == "+" and not T.get_node(b):
+        T.insert(b, 0)
+    if a == '-':
+        T.delete(b)
+    if a == '?':
+        print('Found') if T.get_node(b) else print('Not found')
+    if a == 's':
+        s_new = 0
+        c = (int(c[0]) + s) % 1000000001
+        for elem in T.inorder():
+            if elem.key in range(b, c + 1):
+                s_new += elem.key
+        if s_new != 0:
+            s = s_new
+        print(s)
+        
