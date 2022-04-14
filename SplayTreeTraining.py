@@ -328,7 +328,7 @@ class BSTree:
 
     def get_node(self,key,*args):
         """
-        T.get_node(key,...) -> Node. Produces the Node in T with key
+        T.get_node(key,...) -> Node. Produces the Node in T  with key
         attribute key. If there is no such node, produces None.
         """
         if len(args) == 0:
@@ -1047,8 +1047,27 @@ class AVLTree(BSTree):
         else:
             raise TypeError(str(iter) + " is not iterable")
 
-A = AVLTree([(5, 5), (2, 2), (4, 4), (3, 3), (7, 7), (9, 9)])
-A.get_node(2)
-A.insert(11,11)
-plot_tree(A)
+
+T = AVLTree()
+s = 0
+for i in range(int(input())):
+    a, b, *c = input().split()
+    b = (int(b) + s) % 1000000001
+    if a == "+" and T.get_node(b):
+        T.insert(b, 0)
+    if a == '-':
+        T.delete(b)
+    if a == '?':
+        print('Found') if T.get_node(b) else print('Not found')
+    if a == 's':
+        s = 0
+        c = (int(c) + s) % 1000000001
+        for j in range(b, c + 1):
+            if T.get_node(j):
+                s += T.get_node(j)
+        print(s)
+
+
+
+
 
