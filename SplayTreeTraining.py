@@ -692,17 +692,20 @@ class AVLTree(BSTree):
 
 T = AVLTree()
 s = 0
+el_count = 0
 for i in range(int(input())):
     a, b, *c = input().split()
     b = (int(b) + s) % 1000000001
     if a == "+" and not T.get_node(b):
         T.insert(b, 0)
-    if a == '-':
+        el_count += 1
+    if a == '-' and T.get_node(b):
         T.delete(b)
+        el_count -= 1
     if a == '?':
         print('Found') if T.get_node(b) else print('Not found')
     if a == 's':
-        if T.get_element_count() != 0:
+        if el_count != 0:
             s_new = 0
             c = (int(c[0]) + s) % 1000000001
             for elem in T.inorder():
