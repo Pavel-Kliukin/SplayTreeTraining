@@ -709,5 +709,7 @@ for i in range(int(input())):
                 if elem.key in range(b, c + 1):
                     s_new += elem.key
             s = s_new
+        else:
+            s = 0
         print(s)
         
