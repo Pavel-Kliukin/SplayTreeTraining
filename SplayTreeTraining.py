@@ -81,7 +81,7 @@ class BSTree:
         a new Node with key attribute key and value attribute
         value into T.
         """
-        if not isinstance(key,(int,long,float)):
+        if not isinstance(key,(int,int,float)):
             raise TypeError(str(key) + " is not a number")
         else:
             if not self.Root:
