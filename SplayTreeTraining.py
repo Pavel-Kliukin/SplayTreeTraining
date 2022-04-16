@@ -708,9 +708,10 @@ for i in range(int(input())):
         if el_count != 0:
             s_new = 0
             c = (int(c[0]) + s) % 1000000001
-            for elem in T.inorder():
-                if elem.key in range(b, c + 1):
-                    s_new += elem.key
+            for j in T.inorder():
+                elem = j.key
+                if b <= elem <= c:
+                    s_new += elem
             s = s_new
         else:
             s = 0
