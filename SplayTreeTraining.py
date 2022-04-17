@@ -25,6 +25,7 @@ class Node():
     def balance (self):
         return (self.leftChild.height if self.leftChild else -1) - (self.rightChild.height if self.rightChild else -1)
 
+
 class AVLTree():
     def __init__(self, *args):
         self.rootNode = None
@@ -40,7 +41,7 @@ class AVLTree():
         else:
             return 0
 
-    def rebalance (self, node_to_rebalance):
+    def rebalance(self, node_to_rebalance):
         self.rebalance_count += 1
         A = node_to_rebalance
         F = A.parent #allowed to be NULL
@@ -100,7 +101,7 @@ class AVLTree():
                 """Rebalance, case LLC """
                 assert (not A is None and not B is None and not C is None)
                 A.leftChild = B.rightChild
-                if (A.leftChild):
+                if A.leftChild:
                     A.leftChild.parent = A
                 B.rightChild = A
                 A.parent = B
@@ -113,8 +114,8 @@ class AVLTree():
                     else:
                         F.leftChild = B
                     B.parent = F
-                self.recompute_heights (A)
-                self.recompute_heights (B.parent)
+                self.recompute_heights(A)
+                self.recompute_heights(B.parent)
             else:
                 B = A.leftChild
                 C = B.rightChild
@@ -134,7 +135,7 @@ class AVLTree():
                     self.rootNode = C
                     self.rootNode.parent = None
                 else:
-                    if (F.rightChild == A):
+                    if F.rightChild == A:
                         F.rightChild = C
                     else:
                         F.leftChild = C
@@ -142,43 +143,43 @@ class AVLTree():
                 self.recompute_heights (A)
                 self.recompute_heights (B)
 
-    def sanity_check (self, *args):
+    def sanity_check(self, *args):
         if len(args) == 0:
             node = self.rootNode
         else:
             node = args[0]
-        if (node  is None) or (node.is_leaf() and node.parent is None ):
+        if (node is None) or (node.is_leaf() and node.parent is None ):
             # trival - no sanity check needed, as either the tree is empty or there is only one node in the tree
             pass
         else:
             if node.height != node.max_children_height() + 1:
-                raise Exception ("Invalid height for node " + str(node) + ": " + str(node.height) + " instead of " + str(node.max_children_height() + 1) + "!" )
+                raise Exception("Invalid height for node " + str(node) + ": " + str(node.height) + " instead of " + str(node.max_children_height() + 1) + "!")
 
             balFactor = node.balance()
-            #Test the balance factor
+            # Test the balance factor
             if not (balFactor >= -1 and balFactor <= 1):
-                raise Exception ("Balance factor for node " + str(node) + " is " + str(balFactor) + "!")
-            #Make sure we have no circular references
+                raise Exception("Balance factor for node " + str(node) + " is " + str(balFactor) + "!")
+            # Make sure we have no circular references
             if not (node.leftChild != node):
-                raise Exception ("Circular reference for node " + str(node) + ": node.leftChild is node!")
+                raise Exception("Circular reference for node " + str(node) + ": node.leftChild is node!")
             if not (node.rightChild != node):
-                raise Exception ("Circular reference for node " + str(node) + ": node.rightChild is node!")
+                raise Exception("Circular reference for node " + str(node) + ": node.rightChild is node!")
 
-            if ( node.leftChild ):
+            if node.leftChild:
                 if not (node.leftChild.parent == node):
-                    raise Exception ("Left child of node " + str(node) + " doesn't know who his father is!")
+                    raise Exception("Left child of node " + str(node) + " doesn't know who his father is!")
                 if not (node.leftChild.key <=  node.key):
-                    raise Exception ("Key of left child of node " + str(node) + " is greater than key of his parent!")
+                    raise Exception("Key of left child of node " + str(node) + " is greater than key of his parent!")
                 self.sanity_check(node.leftChild)
 
-            if ( node.rightChild ):
+            if node.rightChild:
                 if not (node.rightChild.parent == node):
-                    raise Exception ("Right child of node " + str(node) + " doesn't know who his father is!")
-                if not (node.rightChild.key >=  node.key):
-                    raise Exception ("Key of right child of node " + str(node) + " is less than key of his parent!")
+                    raise Exception("Right child of node " + str(node) + " doesn't know who his father is!")
+                if not (node.rightChild.key >= node.key):
+                    raise Exception("Key of right child of node " + str(node) + " is less than key of his parent!")
                 self.sanity_check(node.rightChild)
 
-    def recompute_heights (self, start_from_node):
+    def recompute_heights(self, start_from_node):
         changed = True
         node = start_from_node
         while node and changed:
@@ -187,7 +188,7 @@ class AVLTree():
             changed = node.height != old_height
             node = node.parent
 
-    def add_as_child (self, parent_node, child_node):
+    def add_as_child(self, parent_node, child_node):
         node_to_rebalance = None
         if child_node.key < parent_node.key:
             if not parent_node.leftChild:
@@ -197,9 +198,9 @@ class AVLTree():
                     node = parent_node
                     while node:
                         node.height = node.max_children_height() + 1
-                        if not node.balance () in [-1, 0, 1]:
+                        if not node.balance() in [-1, 0, 1]:
                             node_to_rebalance = node
-                            break #we need the one that is furthest from the root
+                            break  # we need the one that is furthest from the root
                         node = node.parent
             else:
                 self.add_as_child(parent_node.leftChild, child_node)
@@ -211,15 +212,15 @@ class AVLTree():
                     node = parent_node
                     while node:
                         node.height = node.max_children_height() + 1
-                        if not node.balance () in [-1, 0, 1]:
+                        if not node.balance() in [-1, 0, 1]:
                             node_to_rebalance = node
-                            break #we need the one that is furthest from the root
+                            break  # we need the one that is furthest from the root
                         node = node.parent
             else:
                 self.add_as_child(parent_node.rightChild, child_node)
 
         if node_to_rebalance:
-            self.rebalance (node_to_rebalance)
+            self.rebalance(node_to_rebalance)
 
     def insert (self, key):
         new_node = Node (key)
@@ -242,19 +243,19 @@ class AVLTree():
             node = node.leftChild
         return node
 
-    def inorder_non_recursive (self):
+    def inorder_non_recursive(self):
         node = self.rootNode
         retlst = []
         while node.leftChild:
             node = node.leftChild
-        while (node):
+        while node:
             retlst += [node.key]
-            if (node.rightChild):
+            if node.rightChild:
                 node = node.rightChild
                 while node.leftChild:
                     node = node.leftChild
             else:
-                while ((node.parent)  and (node == node.parent.rightChild)):
+                while node.parent and node == node.parent.rightChild:
                     node = node.parent
                 node = node.parent
         return retlst
@@ -289,7 +290,7 @@ class AVLTree():
         retlst += [node.key]
         return retlst
 
-    def as_list (self, pre_in_post):
+    def as_list(self, pre_in_post):
         if not self.rootNode:
             return []
         if pre_in_post == 0:
@@ -302,9 +303,9 @@ class AVLTree():
             return self.inorder_non_recursive()
 
     def find(self, key):
-        return self.find_in_subtree (self.rootNode, key )
+        return self.find_in_subtree(self.rootNode, key)
 
-    def find_in_subtree (self,  node, key):
+    def find_in_subtree(self,  node, key):
         if node is None:
             return None  # key not found
         if key < node.key:
@@ -314,7 +315,7 @@ class AVLTree():
         else:  # key is equal to node key
             return node
 
-    def remove (self, key):
+    def remove(self, key):
         # first find
         node = self.find(key)
 
@@ -436,17 +437,17 @@ class AVLTree():
 
             # use for debug only and only with small trees
     def out(self, start_node = None):
-        if start_node == None:
+        if start_node is None:
             start_node = self.rootNode
         space_symbol = "*"
         spaces_count = 80
         out_string = ""
-        initial_spaces_string  = space_symbol * spaces_count + "\n"
+        initial_spaces_string = space_symbol * spaces_count + "\n"
         if not start_node:
             return "AVLTree is empty"
         else:
             level = [start_node]
-            while (len([i for i in level if (not i is None)])>0):
+            while len([i for i in level if (not i is None)]) > 0:
                 level_string = initial_spaces_string
                 for i in xrange(len(level)):
                     j = (i+1)* spaces_count / (len(level)+1)
@@ -474,9 +475,9 @@ for i in range(int(input())):
     if a == '?':
         print('Found') if T.find(b) else print('Not found')
     if a == 's':
-        if el_count != 0:
+        c = (int(c[0]) + s) % 1000000001
+        if el_count != 0 and b <= c:
             s_new = 0
-            c = (int(c[0]) + s) % 1000000001
             for elem in T.inorder_non_recursive():
                 if b <= elem <= c:
                     s_new += elem
