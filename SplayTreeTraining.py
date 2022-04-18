@@ -143,42 +143,6 @@ class AVLTree():
                 self.recompute_heights (A)
                 self.recompute_heights (B)
 
-    def sanity_check(self, *args):
-        if len(args) == 0:
-            node = self.rootNode
-        else:
-            node = args[0]
-        if (node is None) or (node.is_leaf() and node.parent is None ):
-            # trival - no sanity check needed, as either the tree is empty or there is only one node in the tree
-            pass
-        else:
-            if node.height != node.max_children_height() + 1:
-                raise Exception("Invalid height for node " + str(node) + ": " + str(node.height) + " instead of " + str(node.max_children_height() + 1) + "!")
-
-            balFactor = node.balance()
-            # Test the balance factor
-            if not (balFactor >= -1 and balFactor <= 1):
-                raise Exception("Balance factor for node " + str(node) + " is " + str(balFactor) + "!")
-            # Make sure we have no circular references
-            if not (node.leftChild != node):
-                raise Exception("Circular reference for node " + str(node) + ": node.leftChild is node!")
-            if not (node.rightChild != node):
-                raise Exception("Circular reference for node " + str(node) + ": node.rightChild is node!")
-
-            if node.leftChild:
-                if not (node.leftChild.parent == node):
-                    raise Exception("Left child of node " + str(node) + " doesn't know who his father is!")
-                if not (node.leftChild.key <=  node.key):
-                    raise Exception("Key of left child of node " + str(node) + " is greater than key of his parent!")
-                self.sanity_check(node.leftChild)
-
-            if node.rightChild:
-                if not (node.rightChild.parent == node):
-                    raise Exception("Right child of node " + str(node) + " doesn't know who his father is!")
-                if not (node.rightChild.key >= node.key):
-                    raise Exception("Key of right child of node " + str(node) + " is less than key of his parent!")
-                self.sanity_check(node.rightChild)
-
     def recompute_heights(self, start_from_node):
         changed = True
         node = start_from_node
@@ -434,30 +398,6 @@ class AVLTree():
         else:
             node2.rightChild = node1
             node1.parent = node2
-
-            # use for debug only and only with small trees
-    def out(self, start_node = None):
-        if start_node is None:
-            start_node = self.rootNode
-        space_symbol = "*"
-        spaces_count = 80
-        out_string = ""
-        initial_spaces_string = space_symbol * spaces_count + "\n"
-        if not start_node:
-            return "AVLTree is empty"
-        else:
-            level = [start_node]
-            while len([i for i in level if (not i is None)]) > 0:
-                level_string = initial_spaces_string
-                for i in xrange(len(level)):
-                    j = (i+1)* spaces_count / (len(level)+1)
-                    level_string = level_string[:j] + (str(level[i]) if level[i] else space_symbol) + level_string[j+1:]
-                level_next = []
-                for i in level:
-                    level_next += ([i.leftChild, i.rightChild] if i else [None, None])
-                level = level_next
-                out_string += level_string
-        return out_string
 
 
 T = AVLTree()
