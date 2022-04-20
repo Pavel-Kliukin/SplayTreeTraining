@@ -245,6 +245,8 @@ class AVLTree():
     def inorder_non_recursive (self):
         node = self.rootNode
         retlst = []
+        if not node:                    # This
+            return retlst               # This
         while node.leftChild:
             node = node.leftChild
         while (node):
@@ -373,6 +375,16 @@ class AVLTree():
                 assert (node.rightChild)
                 node.rightChild.parent = parent
             self.recompute_heights(parent)
+        else:                                                  # This?
+            if node.leftChild:
+                node.leftChild.parent = None
+                node.leftChild.height = 0
+            else:
+                assert node.rightChild
+                node.rightChild.parent = None
+                node.rightChild.height = 0
+            self.rootNode = node.rightChild or node.leftChild
+            self.elements_count = 1                            # This?
         del node
         # rebalance
         node = parent
@@ -459,33 +471,51 @@ class AVLTree():
         return out_string
 
 
-T = AVLTree()
-A = []
-s = 0
-el_count = 0
-for i in range(int(input())):
-    a, b, *c = input().split()
-    A.append([a, b, *c])
-    b = (int(b) + s) % 1000000001
-    if a == "+" and T.find(b) is None:
-        T.insert(b)
-        el_count += 1
-    if a == '-' and T.find(b) is not None:
-        T.remove(b)
-        el_count -= 1
-    if a == '?':
-        print('Found') if T.find(b) is not None else print('Not found')
-    if a == 's':
-        c = (int(c[0]) + s) % 1000000001
-        if b > c:
-            raise Exception(A)
-        if el_count != 0 and b <= c:
-            s_new = 0
-            for elem in T.inorder_non_recursive():
-                if b <= elem <= c:
-                    s_new += elem
-            s = s_new
-        else:
-            s = 0
-        print(s)
-        
+with open('test.txt') as f:
+    with open('answer.txt', 'w') as an:
+        T = AVLTree()
+        s = 0
+        el_count = 0
+        for i in range(205):
+            print(i+1,': ','el_c=', T.elements_count, ' len(T)=', len(T.inorder_non_recursive()), T.rootNode)
+            a, b1, *c1 = f.readline().split()
+            b = (int(b1) + s) % 1000000001
+            if a == "+" and T.find(b) is None:
+                an.write(str(i+1)+'\n'+'+ '+b1+'--->'+str(b)+'\n')
+                T.insert(b)
+                for elem in T.inorder_non_recursive():
+                    an.write(str(elem)+' ')
+                el_count += 1
+                an.write('\n'+'\n')
+            if a == '-' and T.find(b) is not None:
+                if T.find(b).is_leaf():
+                    mes = 'leaf'
+                elif (bool(T.find(b).leftChild)) ^ (bool(T.find(b).rightChild)):
+                    mes = 'branch'
+                else:
+                    assert (T.find(b).leftChild) and (T.find(b).rightChild)
+                    mes = 'swap'
+                an.write(str(i+1)+'\n'+'- '+b1+'--->'+str(b)+' '+mes+'\n')
+                T.remove(b)
+                for elem in T.inorder_non_recursive():
+                    an.write(str(elem)+' ')
+                el_count -= 1
+                T.sanity_check()
+                an.write('\n'+'\n')
+            if a == '?':
+                pass
+                # an.write('Found'+' len='+str(el_count)+' s='+str(s)+'\n') if T.find(b) is not None else an.write('Not found'+' len='+str(el_count)+' s='+str(s)+'\n')
+            if a == 's':
+                an.write(str(i+1)+'\n')
+                c = (int(c1[0]) + s) % 1000000001
+                if el_count != 0 and b <= c:
+                    s_new = 0
+                    for elem in T.inorder_non_recursive():
+                        an.write(str(elem)+' ')
+                        if b <= elem <= c:
+                            s_new += elem
+                    s = s_new
+                    an.write('\n'+'l='+str(b)+' r='+str(c)+' s='+str(s)+'\n'+'\n')
+                else:
+                    s = 0
+                # an.write(str(s)+'\n')
