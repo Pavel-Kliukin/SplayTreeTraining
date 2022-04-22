@@ -190,6 +190,7 @@ class AVLTree:
         new_node = Node(key)
         if self.rootNode is None:
             self.rootNode = new_node
+            self.elements_count += 1                       # --------
         else:
             if self.find(key) is None:
                 self.elements_count += 1
@@ -413,21 +414,18 @@ class AVLTree:
 
 T = AVLTree()
 s = 0
-el_count = 0
 for i in range(int(input())):
     a, b, *c = input().split()
     b = (int(b) + s) % 1000000001
-    if a == "+" and T.find(b) is None:
+    if a == "+":
         T.insert(b)
-        el_count += 1
-    if a == '-' and T.find(b) is not None:
+    if a == '-':
         T.remove(b)
-        el_count -= 1
     if a == '?':
         print('Found') if T.find(b) is not None else print('Not found')
     if a == 's':
         c = (int(c[0]) + s) % 1000000001
-        if el_count != 0 and b <= c:
+        if T.elements_count != 0:
             s_new = 0
             for elem in T.inorder_non_recursive():
                 if b <= elem <= c:
