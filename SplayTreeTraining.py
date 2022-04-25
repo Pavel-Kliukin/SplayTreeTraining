@@ -30,7 +30,6 @@ class AVLTree:
     def __init__(self, *args):
         self.rootNode = None
         self.elements_count = 0
-        self.rebalance_count = 0
         if len(args) == 1:
             for i in args[0]:
                 self.insert(i)
@@ -42,7 +41,6 @@ class AVLTree:
             return 0
 
     def rebalance(self, node_to_rebalance):
-        self.rebalance_count += 1
         A = node_to_rebalance
         F = A.parent  # allowed to be NULL
         if node_to_rebalance.balance() == -2:
