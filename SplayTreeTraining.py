@@ -409,9 +409,22 @@ for i in range(int(input())):
         c = (int(c[0]) + s) % 1000000001
         if T.elements_count != 0:
             s_new = 0
-            for elem in T.inorder_non_recursive():
-                if b <= elem <= c:
-                    s_new += elem
+            node = T.rootNode
+            while node.leftChild:
+                node = node.leftChild
+            while node:
+                if b <= node.key <= c:
+                    s_new += node.key
+                elif node.key > c:
+                    break
+                if node.rightChild:
+                    node = node.rightChild
+                    while node.leftChild:
+                        node = node.leftChild
+                else:
+                    while node.parent and node == node.parent.rightChild:
+                        node = node.parent
+                    node = node.parent
             s = s_new
         else:
             s = 0
