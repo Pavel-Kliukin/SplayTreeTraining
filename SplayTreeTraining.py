@@ -48,7 +48,6 @@ class AVLTree:
                 """ Rebalance, case RRC """
                 B = A.rightChild
                 C = B.rightChild
-                assert (A is not None and B is not None and C is not None)
                 A.rightChild = B.leftChild
                 if A.rightChild:
                     A.rightChild.parent = A
@@ -63,13 +62,12 @@ class AVLTree:
                     else:
                         F.leftChild = B
                     B.parent = F
-                self.recompute_heights (A)
-                self.recompute_heights (B.parent)
+                self.recompute_heights(A)
+                self.recompute_heights(B.parent)
             else:
                 """ Rebalance, case RLC """
                 B = A.rightChild
                 C = B.leftChild
-                assert (A is not None and B is not None and C is not None)
                 B.leftChild = C.rightChild
                 if B.leftChild:
                     B.leftChild.parent = B
@@ -89,15 +87,13 @@ class AVLTree:
                     else:
                         F.leftChild = C
                     C.parent = F
-                self.recompute_heights (A)
-                self.recompute_heights (B)
+                self.recompute_heights(A)
+                self.recompute_heights(B)
         else:
-            assert(node_to_rebalance.balance() == +2)
             if node_to_rebalance.leftChild.balance() >= 0:
                 B = A.leftChild
                 C = B.leftChild
                 """ Rebalance, case LLC """
-                assert (A is not None and B is not None and C is not None)
                 A.leftChild = B.rightChild
                 if A.leftChild:
                     A.leftChild.parent = A
@@ -118,7 +114,6 @@ class AVLTree:
                 B = A.leftChild
                 C = B.rightChild
                 """ Rebalance, case LRC """
-                assert (A is not None and B is not None and C is not None)
                 A.leftChild = C.rightChild
                 if A.leftChild:
                     A.leftChild.parent = A
@@ -138,8 +133,8 @@ class AVLTree:
                     else:
                         F.leftChild = C
                     C.parent = F
-                self.recompute_heights (A)
-                self.recompute_heights (B)
+                self.recompute_heights(A)
+                self.recompute_heights(B)
 
     def recompute_heights(self, start_from_node):
         changed = True
@@ -302,7 +297,6 @@ class AVLTree:
             elif (bool(node.leftChild)) ^ (bool(node.rightChild)):
                 self.remove_branch(node)
             else:
-                assert node.leftChild and node.rightChild
                 self.swap_with_successor_and_remove(node)
 
     def remove_leaf(self, node):
@@ -311,7 +305,6 @@ class AVLTree:
             if parent.leftChild == node:
                 parent.leftChild = None
             else:
-                assert parent.rightChild == node
                 parent.rightChild = None
             self.recompute_heights(parent)
         else:
@@ -330,12 +323,10 @@ class AVLTree:
             if parent.leftChild == node:
                 parent.leftChild = node.rightChild or node.leftChild
             else:
-                assert (parent.rightChild == node)
                 parent.rightChild = node.rightChild or node.leftChild
             if node.leftChild:
                 node.leftChild.parent = parent
             else:
-                assert node.rightChild
                 node.rightChild.parent = parent
             self.recompute_heights(parent)
         else:                                                  # ---------
@@ -343,7 +334,6 @@ class AVLTree:
                 node.leftChild.parent = None
                 node.leftChild.height = 0
             else:
-                assert node.rightChild
                 node.rightChild.parent = None
                 node.rightChild.height = 0
             self.rootNode = node.rightChild or node.leftChild
@@ -359,22 +349,17 @@ class AVLTree:
     def swap_with_successor_and_remove(self, node):
         successor = self.find_smallest(node.rightChild)
         self.swap_nodes(node, successor)
-        assert (node.leftChild is None)
         if node.height == 0:
             self.remove_leaf(node)
         else:
             self.remove_branch(node)
 
     def swap_nodes(self, node1, node2):
-        assert (node1.height > node2.height)
         parent1 = node1.parent
         leftChild1 = node1.leftChild
         rightChild1 = node1.rightChild
         parent2 = node2.parent
-        assert (parent2 is not None)
-        assert (parent2.leftChild == node2 or parent2 == node1)
         leftChild2 = node2.leftChild
-        assert (leftChild2 is None)
         rightChild2 = node2.rightChild
 
         # swap heights
@@ -386,7 +371,6 @@ class AVLTree:
             if parent1.leftChild == node1:
                 parent1.leftChild = node2
             else:
-                assert (parent1.rightChild == node1)
                 parent1.rightChild = node2
             node2.parent = parent1
         else:
